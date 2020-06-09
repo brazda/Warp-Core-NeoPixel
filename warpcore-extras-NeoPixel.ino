@@ -98,20 +98,38 @@ void rainbowCycle(uint8_t wait) {
 }
 //Theatre-style crawling lights.
 void warpChase(uint32_t c, uint8_t wait) {
- String dist = server.arg("distance");
- String warp1 = server.arg("warp");
- String num = server.arg("num");
-  for (int j=0; j<dist.toInt(); j++) {  //do 10 cycles of chasing
-    for (int q=0; q < dist.toInt(); q++) {
-      for (int i=0; i < strip.numPixels(); i=i+dist.toInt()) {
-        strip.setPixelColor(i+q, c);    //turn every third pixel on
+ /*
+  * c = LED color
+  * wait = who knows, unused in this scope
+  */
+  uint32_t dist = server.arg("distance").toInt();
+  uint32_t warp1 = server.arg("warp").toInt();
+  int32_t num = server.arg("num").toInt();
+  uint32_t npixels = strip.numPixels();
+  uint32_t highpixel = npixels;
+
+  /* Comparison with 32b literal, determines where center is */
+  if ((npixels & 0x00000001) != 0) {
+    /* Odd number of pixels */
+    npixels = (((npixels ^ 0x01) / 2) | 1); /* Leave the center pixel alone */
+  } else {
+    /* Even number of pixels */
+    npixels /= 2; /* "bounce" off two adjacent pixels in the center */
+  }
+
+  for (int j=0; j < dist; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < dist; q++) {
+      for (int i=0; i < npixels; i+=dist) {
+        strip.setPixelColor(i+q, c); //turn every third pixel on, from the "low" end
+        strip.setPixelColor(highpixel - (i+q), c); /* turn on every third pixel, from the "high" end */
+        /* Only true if q is nonzero */
+        if (q != 0) {
+          strip.setPixelColor(i+q+num, c^c); /* turn off every third pixel from the "low" end */
+          strip.setPixelColor(highpixel - (i+q+num), c^c); /* turn off every third pixel from the "high" end */
+        }
       }
-      strip.show(); 
-      delay(warp1.toInt());
-          delay(warp1.toInt());      
-      for (int i=0; i < strip.numPixels(); i=i+dist.toInt()) {
-        strip.setPixelColor(i+q+num.toInt(), 0);        //turn every third pixel off
-      }
+      strip.show();
+      delay(warp1 * 2);
     }
   }
 }

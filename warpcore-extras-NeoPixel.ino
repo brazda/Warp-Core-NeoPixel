@@ -98,20 +98,39 @@ void rainbowCycle(uint8_t wait) {
 }
 //Theatre-style crawling lights.
 void warpChase(uint32_t c, uint8_t wait) {
- uint32_t dist = server.arg("distance").toInt();
- uint32_t warp1 = server.arg("warp").toInt();
- uint32_t num = server.arg("num").toInt();
+ /*
+  * c = LED color
+  * wait = who knows, unused in this scope
+  */
+  uint32_t dist = server.arg("distance").toInt();
+  uint32_t warp1 = server.arg("warp").toInt();
+  int32_t num = server.arg("num").toInt();
+  uint32_t npixels = strip.numPixels();
+
+  /* Comparison with 32b literal */
+  if ((npixels & 0x00000001) != 0) {
+    /* Odd number of pixels */
+    --npixels /= 2; /* Leave the center pixel alone */
+  } else {
+    /* Even number of pixels */
+    npixels /= 2; /* "bounce" off two adjacent pixels in the center */
+  }
   for (int j=0; j < dist; j++) {  //do 10 cycles of chasing
     for (int q=0; q < dist; q++) {
-      for (int i=0; i < strip.numPixels(); i=i+dist) {
-        strip.setPixelColor(i+q, c);    //turn every third pixel on
+      for (int i=0; i < npixels; i+=dist) {
+        strip.setPixelColor(i+q, c); //turn every third pixel on
+        /* Only true if q is nonzero */
+        if (q != 0) {
+          strip.setPixelColor(i+q+num, c^c);
+        }
       }
-      strip.show(); 
-      delay(warp1);
-          delay(warp1);      
-      for (int i=0; i < strip.numPixels(); i=i+dist) {
-        strip.setPixelColor(i+q+num, 0);        //turn every third pixel off
-      }
+      strip.show();
+      delay(warp1 * 2);
+      //for (int i=0; i < strip.numPixels(); i+=dist) {
+        /* c^c is the same as 0, just potentially easier to maintain a mental model of */
+      //  strip.setPixelColor(i+q+num, c^c); //turn every third pixel off
+      //}
+      /* Is there a missing call to strip.show() around here? Otherwise this only takes place after the first inner loop */
     }
   }
 }

@@ -106,31 +106,30 @@ void warpChase(uint32_t c, uint8_t wait) {
   uint32_t warp1 = server.arg("warp").toInt();
   int32_t num = server.arg("num").toInt();
   uint32_t npixels = strip.numPixels();
+  uint32_t highpixel = npixels;
 
-  /* Comparison with 32b literal */
+  /* Comparison with 32b literal, determines where center is */
   if ((npixels & 0x00000001) != 0) {
     /* Odd number of pixels */
-    --npixels /= 2; /* Leave the center pixel alone */
+    npixels = (((npixels ^ 0x01) / 2) | 1); /* Leave the center pixel alone */
   } else {
     /* Even number of pixels */
     npixels /= 2; /* "bounce" off two adjacent pixels in the center */
   }
+
   for (int j=0; j < dist; j++) {  //do 10 cycles of chasing
     for (int q=0; q < dist; q++) {
       for (int i=0; i < npixels; i+=dist) {
-        strip.setPixelColor(i+q, c); //turn every third pixel on
+        strip.setPixelColor(i+q, c); //turn every third pixel on, from the "low" end
+        strip.setPixelColor(highpixel - (i+q), c); /* turn on every third pixel, from the "high" end */
         /* Only true if q is nonzero */
         if (q != 0) {
-          strip.setPixelColor(i+q+num, c^c);
+          strip.setPixelColor(i+q+num, c^c); /* turn off every third pixel from the "low" end */
+          strip.setPixelColor(highpixel - (i+q+num), c^c); /* turn off every third pixel from the "high" end */
         }
       }
       strip.show();
       delay(warp1 * 2);
-      //for (int i=0; i < strip.numPixels(); i+=dist) {
-        /* c^c is the same as 0, just potentially easier to maintain a mental model of */
-      //  strip.setPixelColor(i+q+num, c^c); //turn every third pixel off
-      //}
-      /* Is there a missing call to strip.show() around here? Otherwise this only takes place after the first inner loop */
     }
   }
 }

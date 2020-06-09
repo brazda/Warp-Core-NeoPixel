@@ -98,19 +98,19 @@ void rainbowCycle(uint8_t wait) {
 }
 //Theatre-style crawling lights.
 void warpChase(uint32_t c, uint8_t wait) {
- String dist = server.arg("distance");
- String warp1 = server.arg("warp");
- String num = server.arg("num");
-  for (int j=0; j<dist.toInt(); j++) {  //do 10 cycles of chasing
-    for (int q=0; q < dist.toInt(); q++) {
-      for (int i=0; i < strip.numPixels(); i=i+dist.toInt()) {
+ uint32_t dist = server.arg("distance").toInt();
+ uint32_t warp1 = server.arg("warp").toInt();
+ uint32_t num = server.arg("num").toInt();
+  for (int j=0; j < dist; j++) {  //do 10 cycles of chasing
+    for (int q=0; q < dist; q++) {
+      for (int i=0; i < strip.numPixels(); i=i+dist) {
         strip.setPixelColor(i+q, c);    //turn every third pixel on
       }
       strip.show(); 
-      delay(warp1.toInt());
-          delay(warp1.toInt());      
-      for (int i=0; i < strip.numPixels(); i=i+dist.toInt()) {
-        strip.setPixelColor(i+q+num.toInt(), 0);        //turn every third pixel off
+      delay(warp1);
+          delay(warp1);      
+      for (int i=0; i < strip.numPixels(); i=i+dist) {
+        strip.setPixelColor(i+q+num, 0);        //turn every third pixel off
       }
     }
   }
